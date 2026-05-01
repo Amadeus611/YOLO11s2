@@ -30,9 +30,9 @@ head:
   - [[-1, 4], 1, Concat, [1]]     # cat backbone P3
   - [-1, 2, C3k2, [256, False]]   # 15 (P3 path)
 
-  # --- P2Proxy + ProxyFuse ---
-  - [[1], 1, P2Proxy, [256, 1]]   # 16: P2 proxy -> 128ch
-  - [[-1, 15], 1, ProxyFuse, [256, 4]]  # 17: semantic backflow -> 128ch
+  # --- P2Proxy(downsample) + ProxyFuse(pre_downsample) ---
+  - [[1], 1, P2Proxy, [256, 1, true]]   # 16: P2 proxy -> 128ch at P3 resolution
+  - [[-1, 15], 1, ProxyFuse, [256, 4, true]]  # 17: semantic backflow -> 128ch
 
   - [-1, 1, Conv, [256, 3, 2]]    # 18: stride-2 downsample
   - [[-1, 13], 1, Concat, [1]]    # 19: cat P3_fused(128) + P4(256)

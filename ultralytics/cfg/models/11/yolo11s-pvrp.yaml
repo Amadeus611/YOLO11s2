@@ -31,11 +31,11 @@ head:
   - [[-1, 4], 1, Concat, [1]]     # cat backbone P3
   - [-1, 2, C3k2, [256, False]]   # 15 (P3 path)
 
-  # --- PVRP S1: P2 Proxy Detail Branch ---
-  - [[1], 1, P2Proxy, [256, 1]]   # 16: P2 proxy -> 128ch
+  # --- PVRP S1: P2 Proxy Detail Branch (with downsample) ---
+  - [[1], 1, P2Proxy, [256, 1, true]]   # 16: P2 proxy -> 128ch at P3 resolution
 
   # --- PVRP S2: Anti-aliasing Semantic Backflow Fusion ---
-  - [[-1, 15], 1, ProxyFuse, [256, 4]]  # 17: fuse P2 into P3 -> 128ch
+  - [[-1, 15], 1, ProxyFuse, [256, 4, true]]  # 17: fuse P2 into P3 -> 128ch
 
   - [-1, 1, Conv, [256, 3, 2]]    # 18: stride-2 downsample (fused P3 -> P4 resolution)
   - [[-1, 13], 1, Concat, [1]]    # 19: cat fused P3 (128) + P4 (256)

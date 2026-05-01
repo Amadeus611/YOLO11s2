@@ -2088,18 +2088,29 @@ class P2Proxy(nn.Module):
         c1 (int): Input channels (from P2 layer).
         c2 (int): Output channels.
         n (int): Number of Bottleneck blocks.
+        downsample (bool): If True, apply stride-2 conv to reduce P2 to P3 resolution
+            before CSP processing. Reduces FLOPs by ~4x while preserving detail info.
     """
 
-    def __init__(self, c1: int, c2: int, n: int = 1):
+    def __init__(self, c1: int, c2: int, n: int = 1, downsample: bool = False):
         """Initialize P2Proxy with CSP-style lightweight processing."""
         super().__init__()
         c_ = c2  # hidden channels
+        self.downsample = downsample
+        if downsample:
+            self.ds = nn.Sequential(
+                nn.Conv2d(c1, c1, kernel_size=3, stride=2, padding=1, bias=False),
+                nn.BatchNorm2d(c1),
+                nn.SiLU(),
+            )
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv((1 + n) * c_, c2, 1)
         self.m = nn.ModuleList(Bottleneck(c_, c_, shortcut=True, g=1, k=((3, 3), (3, 3)), e=0.5) for _ in range(n))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass: CSP-style feature refinement at P2 resolution."""
+        """Forward pass: CSP-style feature refinement, optionally at reduced resolution."""
+        if self.downsample:
+            x = self.ds(x)
         y = [self.cv1(x)]
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
@@ -2110,7 +2121,7 @@ class ProxyFuse(nn.Module):
 
     Fuses P2 proxy features into P3 with two mechanisms:
     1. Anti-aliasing downsampling: stride-2 conv reduces P2 (1/4) to P3 (1/8) resolution
-       while smoothing high-frequency artifacts.
+       while smoothing high-frequency artifacts. Skipped when pre_downsample=True.
     2. Semantic gate: P3 global context generates channel-wise attention weights to
        selectively enhance P2 features, suppressing background texture noise.
 
@@ -2119,20 +2130,25 @@ class ProxyFuse(nn.Module):
     Args:
         c_p2 (int): Channels from P2 proxy branch.
         c_p3 (int): Channels from P3 backbone feature.
+        c2 (int | None): Output channels. Defaults to c_p3.
         gate_ratio (int): Channel reduction ratio for the gate bottleneck.
+        pre_downsample (bool): If True, P2 features are already at P3 resolution
+            (e.g., from P2Proxy with downsample=True). Skips the stride-2 conv.
     """
 
-    def __init__(self, c_p2: int, c_p3: int, c2: int | None = None, gate_ratio: int = 4):
+    def __init__(self, c_p2: int, c_p3: int, c2: int | None = None, gate_ratio: int = 4, pre_downsample: bool = False):
         """Initialize ProxyFuse with anti-aliasing downsample and semantic gate."""
         super().__init__()
         if c2 is None:
             c2 = c_p3
-        # Anti-aliasing downsampling: stride-2 conv (P2 1/4 -> P3 1/8)
-        self.downsample = nn.Sequential(
-            nn.Conv2d(c_p2, c_p2, kernel_size=3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(c_p2),
-            nn.SiLU(),
-        )
+        self.pre_downsample = pre_downsample
+        if not pre_downsample:
+            # Anti-aliasing downsampling: stride-2 conv (P2 1/4 -> P3 1/8)
+            self.downsample = nn.Sequential(
+                nn.Conv2d(c_p2, c_p2, kernel_size=3, stride=2, padding=1, bias=False),
+                nn.BatchNorm2d(c_p2),
+                nn.SiLU(),
+            )
         # Project P2 to target channels
         self.align = Conv(c_p2, c2, 1, 1)
         # Project P3 to target channels (preserves backbone info)
@@ -2153,8 +2169,10 @@ class ProxyFuse(nn.Module):
             x: [p2_proxy, p3] — list of two feature tensors.
         """
         p2, p3 = x[0], x[1]
-        # Anti-aliasing downsample + project P2 to target channels
-        p2_aligned = self.align(self.downsample(p2))
+        # Downsample P2 if not already at P3 resolution, then project to target channels
+        if not self.pre_downsample:
+            p2 = self.downsample(p2)
+        p2_aligned = self.align(p2)
         # Project P3 to target channels
         p3_proj = self.reduce(p3)
         # Semantic gate from full P3 backbone features

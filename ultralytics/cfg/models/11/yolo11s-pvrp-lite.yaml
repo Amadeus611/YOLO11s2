@@ -1,6 +1,7 @@
-# YOLO11 + PVRP-Lite: Full PVRP + Selective Slimming
-# P2Proxy + ProxyFuse + NDA + C3k2Lite at P4/P5 neck
-# Keep C3k2 at P3 path (layer 16) for small object capacity
+# YOLO11 + PVRP-Lite (Lightweight): Full PVRP + Selective Slimming
+# P2Proxy(downsample) + ProxyFuse(pre_downsample) + NDA(P3 only) + C3k2Lite at P4/P5
+# Keep C3k2 at P3 path for small object capacity
+# Compared to original: P2 processes at P3 resolution, NDA removed from P4/P5
 
 nc: 80
 scales:
@@ -32,9 +33,9 @@ head:
   - [[-1, 4], 1, Concat, [1]]     # cat backbone P3
   - [-1, 2, C3k2, [256, False]]   # 15 — KEPT (P3 small object path)
 
-  # --- PVRP: P2Proxy + ProxyFuse ---
-  - [[1], 1, P2Proxy, [256, 1]]   # 16
-  - [[-1, 15], 1, ProxyFuse, [256, 4]]  # 17
+  # --- PVRP: P2Proxy(downsample) + ProxyFuse(pre_downsample) ---
+  - [[1], 1, P2Proxy, [256, 1, true]]         # 16 — downsample P2 to P3 resolution
+  - [[-1, 15], 1, ProxyFuse, [256, 4, true]]  # 17 — skip redundant stride-2
 
   - [-1, 1, Conv, [256, 3, 2]]    # 18
   - [[-1, 13], 1, Concat, [1]]    # 19
@@ -44,9 +45,7 @@ head:
   - [[-1, 10], 1, Concat, [1]]    # 22
   - [-1, 2, C3k2Lite, [1024, True]]   # 23 — SLIMMED (P5 head)
 
-  # --- PVRP: NDA ---
+  # --- PVRP: NDA on P3 only (removed from P4/P5 to save FLOPs) ---
   - [[17], 1, NDA, [256]]         # 24
-  - [[20], 1, NDA, [512]]         # 25
-  - [[23], 1, NDA, [1024]]        # 26
 
-  - [[24, 25, 26], 1, Detect, [nc]]
+  - [[24, 20, 23], 1, Detect, [nc]]
