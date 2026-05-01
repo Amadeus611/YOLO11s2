@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show *)",
+      "Bash(pip list *)",
+      "Bash(pip install *)",
+      "Bash(python -c ' *)",
+      "Bash(pdftotext -layout \"d:/1yolo/yolo11s2/conversations/Deep Research 研究结果.pdf\" \"d:/1yolo/yolo11s2/conversations/Deep Research 研究结果.txt\")",
+      "Bash(D:/miniconda/envs/yolo11/python.exe test_modules.py)",
+      "Bash(D:/miniconda/envs/yolo11/python.exe test_model_build.py)",
+      "Bash(D:/miniconda/envs/yolo11/python.exe test_stage2b.py)",
+      "Bash(D:/miniconda/envs/yolo11/python.exe -c ' *)",
+      "Bash(D:/miniconda/envs/yolo11/python.exe test_stage3.py)",
+      "Bash(D:/miniconda/envs/yolo11/python -c ' *)",
+      "Bash(D:/miniconda/envs/yolo11/python.exe tools/profile_models.py)",
+      "Bash(grep -E \"^\\(Device|Model|----|Baseline|PVRP|Lite|\\\\\\\\\\\\\\)\\\\\\\\begin|Model \\)\")",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
