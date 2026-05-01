@@ -19,31 +19,31 @@ def main():
         # Table 1: 核心对比实验
         # =====================================================
         {
-            "yaml": "ultralytics/cfg/models/11/yolo11.yaml",
+            "yaml": "ultralytics/cfg/models/11/yolo11s.yaml",
             "name": "Exp01_Baseline",
             "snaa": False,
             "batch": 16,
         },
         {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
+            "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp.yaml",
             "name": "Exp02_PVRP_Main",
             "snaa": False,
             "batch": 16,
         },
         {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
+            "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp.yaml",
             "name": "Exp03_PVRP_SNAA",
             "snaa": True,
             "batch": 16,
         },
         {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-lite.yaml",
+            "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
             "name": "Exp04_PVRP_Lite",
             "snaa": False,
             "batch": 16,
         },
         {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-lite.yaml",
+            "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
             "name": "Exp05_PVRP_Lite_SNAA_Full",
             "snaa": True,
             "batch": 16,
@@ -52,58 +52,58 @@ def main():
         # =====================================================
         # Table 2: PVRP 主创新子模块消融
         # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s1.yaml",
-            "name": "Exp06_PVRP_S1_P2Proxy",
-            "snaa": False,
-            "batch": 16,
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s3.yaml",
-            "name": "Exp07_PVRP_S3_NDA",
-            "snaa": False,
-            "batch": 16,
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s12.yaml",
-            "name": "Exp08_PVRP_S12_ProxyFuse",
-            "snaa": False,
-            "batch": 16,
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s13.yaml",
-            "name": "Exp09_PVRP_S13_ProxyNDA",
-            "snaa": False,
-            "batch": 16,
-        },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s1.yaml",
+        #     "name": "Exp06_PVRP_S1_P2Proxy",
+        #     "snaa": False,
+        #     "batch": 16,
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s3.yaml",
+        #     "name": "Exp07_PVRP_S3_NDA",
+        #     "snaa": False,
+        #     "batch": 16,
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s12.yaml",
+        #     "name": "Exp08_PVRP_S12_ProxyFuse",
+        #     "snaa": False,
+        #     "batch": 16,
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s13.yaml",
+        #     "name": "Exp09_PVRP_S13_ProxyNDA",
+        #     "snaa": False,
+        #     "batch": 16,
+        # },
 
-        # =====================================================
-        # Table 3: Lite 副创新子模块消融
-        # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-lite-s4.yaml",
-            "name": "Exp10_Lite_S4_SlimOnly",
-            "snaa": False,
-            "batch": 16,
-        },
+        # # =====================================================
+        # # Table 3: Lite 副创新子模块消融
+        # # =====================================================
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-lite-s4.yaml",
+        #     "name": "Exp10_Lite_S4_SlimOnly",
+        #     "snaa": False,
+        #     "batch": 16,
+        # },
 
-        # =====================================================
-        # Table 4: SNAA 内部项消融
-        # =====================================================
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
-            "name": "Exp12_SNAA_ScaleOnly",
-            "snaa": True,
-            "snaa_beta": 0.0,
-            "batch": 16,
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
-            "name": "Exp13_SNAA_NoRepulsion",
-            "snaa": True,
-            "snaa_margin": 0.0,
-            "batch": 16,
-        },
+        # # =====================================================
+        # # Table 4: SNAA 内部项消融
+        # # =====================================================
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
+        #     "name": "Exp12_SNAA_ScaleOnly",
+        #     "snaa": True,
+        #     "snaa_beta": 0.0,
+        #     "batch": 16,
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
+        #     "name": "Exp13_SNAA_NoRepulsion",
+        #     "snaa": True,
+        #     "snaa_margin": 0.0,
+        #     "batch": 16,
+        # },
 
         # =====================================================
         # Table 5: 强基线对比 (YOLO26s / RT-DETR)
@@ -137,7 +137,7 @@ def main():
         common_kwargs = dict(
             # --- 数据集 ---
             data="UAVDT.yaml",
-            imgsz=960,
+            imgsz=640,
             batch=exp["batch"],
             name=exp["name"],
             project="/home/ssssss/1yolo/Ablation_Results",
@@ -146,7 +146,7 @@ def main():
             val=True,
             plots=True,
             save=True,
-            amp=False,
+            amp=True,
             cache=False,
 
             # --- 优化器 (标准 AdamW) ---
@@ -168,7 +168,7 @@ def main():
             snaa=exp["snaa"],
 
             # --- 训练策略 ---
-            epochs=150,
+            epochs=1,
             patience=30,
 
             # --- 数据增强 (航拍适配) ---
