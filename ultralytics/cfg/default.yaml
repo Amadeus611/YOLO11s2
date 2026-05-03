@@ -111,10 +111,11 @@ nbs: 64 # (int) nominal batch size used for loss normalization
 
 # SNAA (Scale-Neighbor Aware Attraction Loss) ---------------------------------------------------------------------------
 snaa: False # (bool) enable Scale-Neighbor Aware Attraction Loss
+snaa_weight: 0.2 # (float) SNAA loss weight (independent from box/cls/dfl weights)
 snaa_kappa: 2.0 # (float) neighbor distance bandwidth (controls neighbor influence range)
 snaa_tau: 1.0 # (float) center deviation bandwidth (controls scale normalization strength)
 snaa_beta: 1.0 # (float) neighbor repulsion strength
-snaa_alpha_max: 5.0 # (float) maximum scale weight to prevent extreme upweighting
+snaa_alpha_max: 2.0 # (float) maximum scale weight to prevent extreme upweighting
 snaa_gamma: 0.5 # (float) IoU focusing exponent
 snaa_margin: 1.0 # (float) repulsion margin (normalized distance threshold)
 hsv_h: 0.015 # (float) HSV hue augmentation fraction

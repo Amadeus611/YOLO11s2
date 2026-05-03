@@ -52,7 +52,7 @@ pytest tests/
 | `ultralytics/nn/tasks.py` | Registers modules in `parse_model()`; ProxyFuse has custom multi-input channel extraction |
 | `ultralytics/utils/loss.py` | SNAALoss class + integration into v8DetectionLoss |
 | `ultralytics/models/yolo/detect/train.py` | Conditionally adds snaa_loss to loss_names |
-| `ultralytics/cfg/default.yaml` | 7 SNAA hyperparameters (snaa, snaa_kappa, snaa_tau, snaa_beta, snaa_alpha_max, snaa_gamma, snaa_margin) |
+| `ultralytics/cfg/default.yaml` | 8 SNAA hyperparameters (snaa, snaa_weight, snaa_kappa, snaa_tau, snaa_beta, snaa_alpha_max, snaa_gamma, snaa_margin) |
 
 ### Custom modules (all in `ultralytics/nn/modules/block.py`)
 
@@ -64,7 +64,7 @@ pytest tests/
 
 ### Custom loss (in `ultralytics/utils/loss.py`)
 
-- **SNAALoss** (~line 109): Scale-normalized center deviation + neighbor repulsion term. Activated by `snaa=True` in training args.
+- **SNAALoss** (~line 109): Scale-normalized center deviation + neighbor repulsion term. Activated by `snaa=True`. Weight controlled by `snaa_weight` (default 0.2), independent from box/cls/dfl weights.
 
 ### Model YAML configs (`ultralytics/cfg/models/11/`)
 

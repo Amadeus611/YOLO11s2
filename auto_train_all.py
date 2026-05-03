@@ -22,32 +22,27 @@ def main():
             "yaml": "ultralytics/cfg/models/11/yolo11s.yaml",
             "name": "Exp01_Baseline",
             "snaa": False,
-            "batch": 32,
         },
         {
             "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp.yaml",
             "name": "Exp02_PVRP_Main",
             "snaa": False,
-            "batch": 32,
         },
         {
             "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp.yaml",
             "name": "Exp03_PVRP_SNAA",
             "snaa": True,
-            "batch": 32,
         },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
-            "name": "Exp04_PVRP_Lite",
-            "snaa": False,
-            "batch": 32,
-        },
-        {
-            "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
-            "name": "Exp05_PVRP_Lite_SNAA_Full",
-            "snaa": True,
-            "batch": 32,
-        },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
+        #     "name": "Exp04_PVRP_Lite",
+        #     "snaa": False,
+        # },
+        # {
+        #     "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
+        #     "name": "Exp05_PVRP_Lite_SNAA_Full",
+        #     "snaa": True,
+        # },
 
         # =====================================================
         # Table 2: PVRP 主创新子模块消融
@@ -56,25 +51,21 @@ def main():
         #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s1.yaml",
         #     "name": "Exp06_PVRP_S1_P2Proxy",
         #     "snaa": False,
-        #     "batch": 16,
         # },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s3.yaml",
         #     "name": "Exp07_PVRP_S3_NDA",
         #     "snaa": False,
-        #     "batch": 16,
         # },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s12.yaml",
         #     "name": "Exp08_PVRP_S12_ProxyFuse",
         #     "snaa": False,
-        #     "batch": 16,
         # },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-s13.yaml",
         #     "name": "Exp09_PVRP_S13_ProxyNDA",
         #     "snaa": False,
-        #     "batch": 16,
         # },
 
         # # =====================================================
@@ -84,7 +75,6 @@ def main():
         #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp-lite-s4.yaml",
         #     "name": "Exp10_Lite_S4_SlimOnly",
         #     "snaa": False,
-        #     "batch": 16,
         # },
 
         # # =====================================================
@@ -95,14 +85,12 @@ def main():
         #     "name": "Exp12_SNAA_ScaleOnly",
         #     "snaa": True,
         #     "snaa_beta": 0.0,
-        #     "batch": 16,
         # },
         # {
         #     "yaml": "ultralytics/cfg/models/11/yolo11-pvrp.yaml",
         #     "name": "Exp13_SNAA_NoRepulsion",
         #     "snaa": True,
         #     "snaa_margin": 0.0,
-        #     "batch": 16,
         # },
 
         # =====================================================
@@ -112,13 +100,11 @@ def main():
         #     "yaml": "ultralytics/cfg/models/26/yolo26s.yaml",
         #     "name": "Exp14_YOLO26s",
         #     "snaa": False,
-        #     "batch": 12,
         # },
         # {
         #     "yaml": "ultralytics/cfg/models/rt-detr/rtdetr-l.yaml",
         #     "name": "Exp15_RTDETR_l",
         #     "snaa": False,
-        #     "batch": 8,
         # },
     ]
 
@@ -129,7 +115,7 @@ def main():
         print(f"\n{'=' * 60}")
         print(f"  实验 {i + 1}/{len(experiments)}: {exp['name']}")
         print(f"  配置文件: {exp['yaml']}")
-        print(f"  SNAA: {exp['snaa']}  |  Batch: {exp['batch']}")
+        print(f"  SNAA: {exp['snaa']}")
         print(f"{'=' * 60}\n")
 
         model = YOLO(exp["yaml"]).load("yolo11s.pt")
@@ -138,7 +124,7 @@ def main():
             # --- 数据集 ---
             data="UAVDT.yaml",
             imgsz=640,
-            batch=exp["batch"],
+            batch=32,
             name=exp["name"],
             project="/home/ssssss/1yolo/Ablation_Results",
             device=0,
@@ -169,7 +155,7 @@ def main():
 
             # --- 训练策略 ---
             epochs=150,
-            patience=30,
+            patience=0,
 
             # --- 数据增强 (航拍适配) ---
             mosaic=1.0,
@@ -190,7 +176,7 @@ def main():
         )
 
         # 透传 SNAA 内部参数覆盖
-        for k in ("snaa_kappa", "snaa_tau", "snaa_beta",
+        for k in ("snaa_weight", "snaa_kappa", "snaa_tau", "snaa_beta",
                    "snaa_alpha_max", "snaa_gamma", "snaa_margin"):
             if k in exp:
                 common_kwargs[k] = exp[k]

@@ -25,7 +25,7 @@
 | `ultralytics/nn/modules/__init__.py` | 修改 | 导出新模块 |
 | `ultralytics/nn/tasks.py` | 修改 | 注册新模块到 parse_model, 修复 _predict_once |
 | `ultralytics/utils/loss.py` | 新增+修改 | SNAALoss 类, v8DetectionLoss 集成 SNAA |
-| `ultralytics/cfg/default.yaml` | 修改 | 新增 7 个 SNAA 超参 |
+| `ultralytics/cfg/default.yaml` | 修改 | 新增 8 个 SNAA 超参 (含 snaa_weight) |
 | `ultralytics/models/yolo/detect/train.py` | 修改 | loss_names 动态添加 snaa_loss |
 | `ultralytics/cfg/models/11/yolo11-pvrp.yaml` | 新增 | 完整 PVRP 架构 |
 | `ultralytics/cfg/models/11/yolo11-pvrp-s1.yaml` | 新增 | P2Proxy 消融 |

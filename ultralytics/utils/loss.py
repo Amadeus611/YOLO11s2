@@ -129,7 +129,7 @@ class SNAALoss(nn.Module):
         tau: float = 1.0,
         beta: float = 1.0,
         gamma: float = 0.5,
-        alpha_max: float = 5.0,
+        alpha_max: float = 2.0,
         margin: float = 1.0,
     ):
         """Initialize SNAALoss."""
@@ -225,12 +225,15 @@ class SNAALoss(nn.Module):
         center_dev = center_dev.clamp(max=20.0)  # prevent exp overflow
 
         # Neighbor repulsion (clamp for stability)
+        # Zero out repulsion for targets with no valid nearest neighbor
+        nn_mask_fg = nn_mask[batch_fg, tgt_gt_idx_fg].unsqueeze(-1).float()  # (n_fg, 1)
         nn_dist_sq = ((nn_c - tgt_c) ** 2).sum(-1, keepdim=True)
         rho = torch.exp(-(nn_dist_sq / (2 * self.kappa * s ** 2 + eps)).clamp(max=20.0))
         pred_nn_dist = ((pred_c - nn_c) ** 2).sum(-1, keepdim=True).clamp(min=eps).sqrt()
         pred_tgt_dist = ((pred_c - tgt_c) ** 2).sum(-1, keepdim=True).clamp(min=eps).sqrt()
         delta = (pred_nn_dist - pred_tgt_dist) / (s + eps)
         repulsion = rho * torch.clamp(self.margin - delta, min=0) / (self.margin + eps)
+        repulsion = repulsion * nn_mask_fg
 
         # Attraction score (clamp exp arguments)
         iou_term = iou.unsqueeze(-1).clamp(min=eps) ** self.gamma
@@ -241,9 +244,10 @@ class SNAALoss(nn.Module):
         s_ref = s.detach().median().clamp(min=eps)
         alpha = torch.clamp((s_ref / (s + eps)) ** 0.5, max=self.alpha_max)
 
-        # Weighted loss
+        # Weighted loss — normalize by fg count (not target_scores_sum) for stable magnitude
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        loss = (alpha * (1 - A) * weight).sum() / (target_scores_sum + eps)
+        fg_count = max(fg_mask.sum(), 1)
+        loss = (alpha * (1 - A) * weight).sum() / fg_count
         return loss.squeeze(-1)
 
 
@@ -509,12 +513,13 @@ class v8DetectionLoss:
         # SNAA (Scale-Neighbor Aware Attraction Loss)
         self.use_snaa = getattr(h, "snaa", False)
         if self.use_snaa:
+            self.snaa_weight = getattr(h, "snaa_weight", 0.2)
             self.snaa_loss = SNAALoss(
                 kappa=getattr(h, "snaa_kappa", 2.0),
                 tau=getattr(h, "snaa_tau", 1.0),
                 beta=getattr(h, "snaa_beta", 1.0),
                 gamma=getattr(h, "snaa_gamma", 0.5),
-                alpha_max=getattr(h, "snaa_alpha_max", 5.0),
+                alpha_max=getattr(h, "snaa_alpha_max", 2.0),
                 margin=getattr(h, "snaa_margin", 1.0),
             ).to(device)
 
@@ -612,7 +617,7 @@ class v8DetectionLoss:
                 gt_labels,
                 target_gt_idx,
             )
-            snaa_weighted = snaa * self.hyp.box
+            snaa_weighted = snaa * self.snaa_weight
             loss = torch.cat([loss, snaa_weighted.unsqueeze(0)])
 
         loss[0] *= self.hyp.box  # box gain
