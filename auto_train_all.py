@@ -22,31 +22,31 @@ def main():
             "yaml": "ultralytics/cfg/models/11/yolo11s.yaml",
             "name": "Exp01_Baseline",
             "snaa": False,
-            "batch": 16,
+            "batch": 32,
         },
         {
             "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp.yaml",
             "name": "Exp02_PVRP_Main",
             "snaa": False,
-            "batch": 16,
+            "batch": 32,
         },
         {
             "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp.yaml",
             "name": "Exp03_PVRP_SNAA",
             "snaa": True,
-            "batch": 16,
+            "batch": 32,
         },
         {
             "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
             "name": "Exp04_PVRP_Lite",
             "snaa": False,
-            "batch": 16,
+            "batch": 32,
         },
         {
             "yaml": "ultralytics/cfg/models/11/yolo11s-pvrp-lite.yaml",
             "name": "Exp05_PVRP_Lite_SNAA_Full",
             "snaa": True,
-            "batch": 16,
+            "batch": 32,
         },
 
         # =====================================================
@@ -168,7 +168,7 @@ def main():
             snaa=exp["snaa"],
 
             # --- 训练策略 ---
-            epochs=1,
+            epochs=150,
             patience=30,
 
             # --- 数据增强 (航拍适配) ---
@@ -176,7 +176,7 @@ def main():
             close_mosaic=15,
             mixup=0.0,
             copy_paste=0.0,
-            degrees=15.0,
+            degrees=25.0,
             scale=0.5,
             translate=0.1,
             fliplr=0.5,
