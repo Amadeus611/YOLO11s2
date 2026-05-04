@@ -495,7 +495,9 @@ class v8DetectionLoss:
         self.use_dfl = m.reg_max > 1
 
         # Class weights for handling imbalanced datasets
-        self.class_weights = getattr(model, "class_weights", None) or getattr(h, "class_weights", None)
+        self.class_weights = getattr(model, "class_weights", None)
+        if self.class_weights is None:
+            self.class_weights = getattr(h, "class_weights", None)
         if self.class_weights is not None:
             self.class_weights = (
                 torch.tensor(self.class_weights, dtype=torch.float, device=device)
