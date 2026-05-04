@@ -108,6 +108,7 @@ kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization
+class_weights: # (float list, optional) per-class loss weights, e.g. [1.0, 10.0, 20.0] for [car, truck, bus]
 
 # SNAA (Scale-Neighbor Aware Attraction Loss) ---------------------------------------------------------------------------
 snaa: False # (bool) enable Scale-Neighbor Aware Attraction Loss

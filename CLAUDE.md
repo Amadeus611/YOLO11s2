@@ -7,10 +7,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A research project for UAV aerial vehicle detection, modifying ultralytics v8.4.45. The paper proposes three innovations on top of YOLO11s:
 
 1. **PVRP** (P2-Proxy Guided Fine-Grained Vehicle Recovery Pyramid) — P2-level features as a proxy detail branch fused into P3 via semantic gating, with NDA for neighbor decoupling
-2. **SNAA** (Scale-Neighbor Aware Attraction Loss) — custom loss replacing IoU similarity with scale-normalized attraction + neighbor repulsion
+2. **SNAA** (Scale-Neighbor Aware Attraction Loss) — supplementary loss adding scale-normalized attraction + neighbor repulsion on top of standard CIoU
 3. **Lite** (Selective Slimming) — C3k2Lite using depthwise separable bottlenecks for P4/P5 branches
 
 Dataset: UAVDT (car/truck/bus), 3 classes. Training runs on a Linux machine at `/home/ssssss/1yolo/`.
+
+## Environment
+
+Python env: conda `yolo11` at `D:\miniconda\envs\yolo11`. Always activate before running Python:
+```bash
+D:/miniconda/envs/yolo11/python.exe <script>
+# or: conda activate yolo11
+```
 
 ## Commands
 
@@ -64,7 +72,7 @@ pytest tests/
 
 ### Custom loss (in `ultralytics/utils/loss.py`)
 
-- **SNAALoss** (~line 109): Scale-normalized center deviation + neighbor repulsion term. Activated by `snaa=True`. Weight controlled by `snaa_weight` (default 0.2), independent from box/cls/dfl weights.
+- **SNAALoss** (~line 109): Scale-normalized center deviation + neighbor repulsion term. Activated by `snaa=True`. Weight controlled by `snaa_weight` (default 0.2), independent from box/cls/dfl weights. Runs **alongside** standard CIoU+DFL (does not replace them). All inputs must be in [0,1] normalized xyxy coordinates — the call site converts pred/target/gt boxes to this space via `stride_tensor` and `imgsz` normalization. AMP-safe: all intermediate values bounded, with clamp(20) on exp arguments.
 
 ### Model YAML configs (`ultralytics/cfg/models/11/`)
 
@@ -82,6 +90,8 @@ pytest tests/
 ## Key Conventions
 
 - Pretrained weights (`yolo11s.pt`) are loaded via `.load("yolo11s.pt")` after constructing from YAML
-- The `UAVDT.yaml` dataset path points to a Linux machine; update for local development
+- The `UAVDT.yaml` dataset path points to a Linux machine (`/home/ssssss/1yolo/`); update for local development
 - `auto_train_all.py` has `epochs=1` as a placeholder; real training uses 150 epochs
 - All model configs use `nc: 80` (COCO default) which gets overridden to 3 at training time
+- UAVDT has severe class imbalance (car >> truck > bus). Current config uses `cls_pw=0.0`; consider setting to `1.0` or using class_weights for minority classes
+- Training uses AMP (`amp=True`); ensure all custom loss code is FP16-safe (clamp exp arguments, avoid unbounded divisions)

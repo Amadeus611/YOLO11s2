@@ -155,12 +155,12 @@ class SNAALoss(nn.Module):
         """Compute SNAA loss for foreground predictions.
 
         Args:
-            pred_bboxes: (b, num_anchors, 4) predicted boxes in xyxy format.
-            target_bboxes: (b, num_anchors, 4) assigned target boxes (normalized).
+            pred_bboxes: (b, num_anchors, 4) predicted boxes in [0,1] normalized xyxy.
+            target_bboxes: (b, num_anchors, 4) assigned target boxes in [0,1] normalized xyxy.
             target_scores: (b, num_anchors, nc) soft assignment scores.
             target_scores_sum: scalar, sum of target scores for normalization.
             fg_mask: (b, num_anchors) boolean foreground mask.
-            gt_bboxes: (b, max_gt, 4) all GT boxes (normalized xyxy).
+            gt_bboxes: (b, max_gt, 4) all GT boxes in [0,1] normalized xyxy.
             gt_labels: (b, max_gt, 1) all GT labels.
             target_gt_idx: (b, num_anchors) GT index for each anchor.
         """
@@ -174,7 +174,7 @@ class SNAALoss(nn.Module):
         max_gt = gt_bboxes.shape[1]
         gt_centers = (gt_bboxes[..., :2] + gt_bboxes[..., 2:]) / 2  # (b, max_gt, 2)
         gt_wh = gt_bboxes[..., 2:] - gt_bboxes[..., :2]  # (b, max_gt, 2)
-        gt_valid = gt_bboxes.sum(-1).gt_(0.0).bool()  # (b, max_gt)
+        gt_valid = gt_bboxes.sum(-1).gt(0.0).bool()  # (b, max_gt)
 
         # Pairwise L2 distance between GT centers: (b, max_gt, max_gt)
         diff = gt_centers.unsqueeze(2) - gt_centers.unsqueeze(1)
@@ -195,8 +195,8 @@ class SNAALoss(nn.Module):
         nearest_c = nearest_c * nn_mask.unsqueeze(-1).float()  # zero out if no valid neighbor
 
         # 2. Gather foreground predictions and targets
-        pred_fg = pred_bboxes[fg_mask]  # (n_fg, 4) — already in image-scale xyxy
-        tgt_fg = target_bboxes[fg_mask]  # (n_fg, 4) — normalized xyxy
+        pred_fg = pred_bboxes[fg_mask]  # (n_fg, 4) — [0,1] normalized xyxy
+        tgt_fg = target_bboxes[fg_mask]  # (n_fg, 4) — [0,1] normalized xyxy
 
         if pred_fg.shape[0] == 0:
             return torch.tensor(0.0, device=device)
@@ -495,9 +495,13 @@ class v8DetectionLoss:
         self.use_dfl = m.reg_max > 1
 
         # Class weights for handling imbalanced datasets
-        self.class_weights = getattr(model, "class_weights", None)
+        self.class_weights = getattr(model, "class_weights", None) or getattr(h, "class_weights", None)
         if self.class_weights is not None:
-            self.class_weights = self.class_weights.to(device).view(1, 1, -1)
+            self.class_weights = (
+                torch.tensor(self.class_weights, dtype=torch.float, device=device)
+                if not isinstance(self.class_weights, torch.Tensor)
+                else self.class_weights.to(device)
+            ).view(1, 1, -1)
 
         self.assigner = TaskAlignedAssigner(
             topk=tal_topk,
@@ -569,7 +573,7 @@ class v8DetectionLoss:
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
-        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt(0.0)
 
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
@@ -605,15 +609,16 @@ class v8DetectionLoss:
                 stride_tensor,
             )
 
-        # SNAA loss (replaces IoU term when enabled)
+        # SNAA loss (supplementary to standard CIoU + DFL)
         if self.use_snaa and fg_mask.sum():
+            imgsz_norm = imgsz[[1, 0, 1, 0]]  # [W, H, W, H] for xyxy normalization
             snaa = self.snaa_loss(
-                pred_bboxes,
-                target_bboxes / stride_tensor,
+                pred_bboxes * stride_tensor / imgsz_norm,  # grid-relative -> [0,1]
+                target_bboxes / imgsz_norm,                 # pixel -> [0,1]
                 target_scores,
                 target_scores_sum,
                 fg_mask,
-                gt_bboxes / imgsz[[1, 0, 1, 0]],  # normalize GT to [0,1]
+                gt_bboxes / imgsz_norm,                     # pixel -> [0,1]
                 gt_labels,
                 target_gt_idx,
             )
@@ -1200,7 +1205,7 @@ class v8OBBLoss(v8DetectionLoss):
             targets = targets[(rw >= 2) & (rh >= 2)]  # filter rboxes of tiny size to stabilize training
             targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
-            mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+            mask_gt = gt_bboxes.sum(2, keepdim=True).gt(0.0)
         except RuntimeError as e:
             raise TypeError(
                 "ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n"

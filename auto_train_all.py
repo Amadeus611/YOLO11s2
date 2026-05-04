@@ -144,26 +144,27 @@ def main():
             cos_lr=True,
             warmup_epochs=3.0,
 
-            # --- 损失权重 (标准值) ---
+            # --- 损失权重 ---
             box=7.5,
-            cls=0.5,
+            cls=1.0,
             dfl=1.5,
-            cls_pw=0.0,
+            cls_pw=1.0,
+            class_weights=[0.03, 0.69, 1.0],  # inverse freq: car/truck/bus
 
             # --- SNAA ---
             snaa=exp["snaa"],
 
             # --- 训练策略 ---
             epochs=150,
-            patience=0,
+            patience=50,
 
             # --- 数据增强 (航拍适配) ---
             mosaic=1.0,
-            close_mosaic=15,
+            close_mosaic=20,
             mixup=0.0,
             copy_paste=0.0,
             degrees=25.0,
-            scale=0.5,
+            scale=0.2,
             translate=0.1,
             fliplr=0.5,
             erasing=0.1,
