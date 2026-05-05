@@ -244,10 +244,9 @@ class SNAALoss(nn.Module):
         s_ref = s.detach().median().clamp(min=eps)
         alpha = torch.clamp((s_ref / (s + eps)) ** 0.5, max=self.alpha_max)
 
-        # Weighted loss — normalize by fg count (not target_scores_sum) for stable magnitude
+        # Weighted loss — normalize by target_scores_sum (same as standard box/cls/dfl losses)
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        fg_count = max(fg_mask.sum(), 1)
-        loss = (alpha * (1 - A) * weight).sum() / fg_count
+        loss = (alpha * (1 - A) * weight).sum() / max(target_scores_sum, 1)
         return loss.squeeze(-1)
 
 

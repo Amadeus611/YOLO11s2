@@ -137,22 +137,23 @@ def main():
 
             # --- 优化器 (标准 AdamW) ---
             optimizer="AdamW",
-            lr0=0.001,
+            lr0=0.0005,
             lrf=0.01,
             momentum=0.937,
             weight_decay=0.0005,
             cos_lr=True,
-            warmup_epochs=3.0,
+            warmup_epochs=10,
 
             # --- 损失权重 ---
             box=7.5,
             cls=1.0,
             dfl=1.5,
             cls_pw=1.0,
-            class_weights=[0.03, 0.69, 1.0],  # inverse freq: car/truck/bus
+            class_weights=[0.15, 0.7, 1.0],  # inverse freq: car/truck/bus
 
             # --- SNAA ---
             snaa=exp["snaa"],
+            snaa_weight=0.05,
 
             # --- 训练策略 ---
             epochs=150,

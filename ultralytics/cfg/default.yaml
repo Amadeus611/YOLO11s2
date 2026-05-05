@@ -112,7 +112,7 @@ class_weights: # (float list, optional) per-class loss weights, e.g. [1.0, 10.0,
 
 # SNAA (Scale-Neighbor Aware Attraction Loss) ---------------------------------------------------------------------------
 snaa: False # (bool) enable Scale-Neighbor Aware Attraction Loss
-snaa_weight: 0.2 # (float) SNAA loss weight (independent from box/cls/dfl weights)
+snaa_weight: 0.05 # (float) SNAA loss weight (independent from box/cls/dfl weights)
 snaa_kappa: 2.0 # (float) neighbor distance bandwidth (controls neighbor influence range)
 snaa_tau: 1.0 # (float) center deviation bandwidth (controls scale normalization strength)
 snaa_beta: 1.0 # (float) neighbor repulsion strength
