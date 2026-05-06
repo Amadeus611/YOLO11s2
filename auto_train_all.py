@@ -137,35 +137,35 @@ def main():
 
             # --- 优化器 (标准 AdamW) ---
             optimizer="AdamW",
-            lr0=0.0005,
+            lr0=0.001,
             lrf=0.01,
             momentum=0.937,
             weight_decay=0.0005,
             cos_lr=True,
-            warmup_epochs=10,
+            warmup_epochs=3,
 
             # --- 损失权重 ---
             box=7.5,
-            cls=1.0,
+            cls=0.5,
             dfl=1.5,
             cls_pw=1.0,
-            class_weights=[0.15, 0.7, 1.0],  # inverse freq: car/truck/bus
+            class_weights=None,  # 不做类权重平衡，让模型正常学习所有类
 
             # --- SNAA ---
             snaa=exp["snaa"],
-            snaa_weight=0.05,
+            snaa_weight=0.001,
 
             # --- 训练策略 ---
             epochs=150,
             patience=50,
 
             # --- 数据增强 (航拍适配) ---
-            mosaic=1.0,
-            close_mosaic=20,
+            mosaic=0.5,
+            close_mosaic=15,
             mixup=0.0,
             copy_paste=0.0,
-            degrees=25.0,
-            scale=0.2,
+            degrees=15.0,
+            scale=0.3,
             translate=0.1,
             fliplr=0.5,
             erasing=0.1,
